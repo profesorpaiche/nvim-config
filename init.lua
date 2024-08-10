@@ -27,7 +27,7 @@ vim.opt.smartcase = true
 
 -- Mouse configuration
 vim.opt.mouse = 'a'
-vim.opt.mousescroll = 'ver:15,hor:5'
+vim.opt.mousescroll = 'ver:3,hor:6'
 
 -- Sync clipboard between OS and Neovim.
 vim.opt.clipboard = 'unnamedplus'
@@ -68,6 +68,9 @@ vim.opt.spell = true
 -- Sets how neovim will display certain whitespace in the editor.
 vim.opt.list = true
 vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
+
+-- Virtual text
+vim.diagnostic.config({ virtual_text = false })
 
 -- [[ Basic Key maps ]]
 
@@ -139,9 +142,6 @@ vim.opt.rtp:prepend(lazypath)
 -- [[ Install and configure plugins ]]
 
 require('lazy').setup({
-  -- Detect tabstop and shiftwidth automatically
-  'tpope/vim-sleuth',
-
   -- Web icons for neovim
   {'nvim-tree/nvim-web-devicons', opts = {}},
 
@@ -218,7 +218,20 @@ require('lazy').setup({
       'williamboman/mason-lspconfig.nvim',
       'WhoIsSethDaniel/mason-tool-installer.nvim',
       -- Visualize updates for LSP
-      { 'j-hui/fidget.nvim', opts = {} },
+      {
+        'j-hui/fidget.nvim',
+        config = function()
+          require('fidget').setup({
+            notification = {
+              window = {
+                normal_hl = "Comment",
+                winblend = 0,
+                border = "single"
+              }
+            }
+          })
+        end
+      },
     },
     config = function()
       vim.api.nvim_create_autocmd('LspAttach', {
@@ -284,17 +297,37 @@ require('lazy').setup({
     end,
   },
 
+  -- { -- Color scheme
+  --   'folke/tokyonight.nvim',
+  --   lazy = false,
+  --   priority = 1000,
+  --   config = function()
+  --     require('tokyonight').setup({
+  --       transparent = true
+  --     })
+  --     vim.cmd.colorscheme('tokyonight-night')
+  --   end,
+  -- },
+
   { -- Color scheme
-    'folke/tokyonight.nvim',
+    dir = '/home/paiche/proyectos/toytiza/',
     lazy = false,
     priority = 1000,
     config = function()
-      require('tokyonight').setup({
-        transparent = true
-      })
-      vim.cmd.colorscheme('tokyonight-night')
+      require('toytiza').setup({})
+      vim.cmd.colorscheme('toytiza')
     end,
   },
+
+  -- { -- Color scheme
+  --   'profesorpaiche/toytiza.nvim',
+  --   lazy = false,
+  --   priority = 1000,
+  --   config = function()
+  --     require('toytiza').setup({})
+  --     vim.cmd.colorscheme('toytiza')
+  --   end,
+  -- },
 
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
@@ -312,43 +345,78 @@ require('lazy').setup({
     end,
   },
 
-  { -- Headlines for markdown documents
-    "lukas-reineke/headlines.nvim",
-    dependencies = "nvim-treesitter/nvim-treesitter",
-    config = function()
-      local headlines_style = {
-        headline_highlights = {
-          "Headline1",
-          "Headline2",
-          "Headline3",
-          "Headline4",
-          "Headline5",
-          "Headline6",
-        },
-        codeblock_highlight = "CodeBlock",
-        dash_highlight = "Dash",
-        quote_highlight = "Quote",
-      }
-      require('headlines').setup({
-        markdown = headlines_style,
-        rmd = headlines_style,
-      })
-    end
-  },
+  -- { -- Headlines for markdown documents
+  --   "lukas-reineke/headlines.nvim",
+  --   dependencies = "nvim-treesitter/nvim-treesitter",
+  --   config = function()
+  --     local headlines_style = {
+  --       headline_highlights = {
+  --         "Headline1",
+  --         "Headline2",
+  --         "Headline3",
+  --         "Headline4",
+  --         "Headline5",
+  --         "Headline6",
+  --       },
+  --       codeblock_highlight = "CodeBlock",
+  --       dash_highlight = "Dash",
+  --       quote_highlight = "Quote",
+  --     }
+  --     require('headlines').setup({
+  --       markdown = headlines_style,
+  --       rmd = headlines_style,
+  --       quarto = {
+  --         query = vim.treesitter.query.parse(
+  --           "markdown",
+  --           [[
+  --               (atx_heading [
+  --                   (atx_h1_marker)
+  --                   (atx_h2_marker)
+  --                   (atx_h3_marker)
+  --                   (atx_h4_marker)
+  --                   (atx_h5_marker)
+  --                   (atx_h6_marker)
+  --               ] @headline)
+  --
+  --               (thematic_break) @dash
+  --
+  --               (fenced_code_block) @codeblock
+  --
+  --               (block_quote_marker) @quote
+  --               (block_quote (paragraph (inline (block_continuation) @quote)))
+  --               (block_quote (paragraph (block_continuation) @quote))
+  --               (block_quote (block_continuation) @quote)
+  --           ]]
+  --         ),
+  --         treesitter_language = "markdown",
+  --         headline_highlights = headlines_style.headline_highlights,
+  --         bullet_highlights = {
+  --           "@text.title.1.marker.markdown",
+  --           "@text.title.2.marker.markdown",
+  --           "@text.title.3.marker.markdown",
+  --           "@text.title.4.marker.markdown",
+  --           "@text.title.5.marker.markdown",
+  --           "@text.title.6.marker.markdown",
+  --         },
+  --         bullets = { "◉", "○", "✸", "✿" },
+  --         codeblock_highlight = "CodeBlock",
+  --         dash_highlight = "Dash",
+  --         dash_string = "-",
+  --         quote_highlight = "Quote",
+  --         quote_string = "┃",
+  --         fat_headlines = true,
+  --         fat_headline_upper_string = "▃",
+  --         fat_headline_lower_string = "🬂",
+  --       },
+  --     })
+  --   end
+  -- },
 
-  { -- Quarto suit of stuff
-    'quarto-dev/quarto-nvim',
-    dependencies = {
-      'jmbuhr/otter.nvim',
-    },
-    ft = 'quarto'
-  },
-
-  {
-    'folke/todo-comments.nvim',
-    dependencies = {'nvim-lua/plenary.nvim'},
-    opts = {signs = false},
-  },
+  -- {
+  --   'folke/todo-comments.nvim',
+  --   dependencies = {'nvim-lua/plenary.nvim'},
+  --   opts = {signs = false},
+  -- },
 
   -- Extends the functionality of 'a', 'i' and others
   -- Examples:
@@ -356,10 +424,6 @@ require('lazy').setup({
   --  - yinq - [Y]ank [I]nside [N]ext [']quote
   --  - ci'  - [C]hange [I]nside [']quote
   { 'echasnovski/mini.ai', opts = {}, },
-
-  -- Animate the cursor
-  -- NOTE: It makes vim a bit less responsive
-  -- { 'echasnovski/mini.animate', opts = {}, },
 
   -- Good options and mappings
   { 'echasnovski/mini.basics', opts = {}, },
@@ -398,7 +462,18 @@ require('lazy').setup({
   },
 
   -- Autocompletion and signature help
-  { 'echasnovski/mini.completion', opts = {}, },
+  {
+    'echasnovski/mini.completion',
+    config = function()
+      require('mini.completion').setup({
+        delay = { completion = 500, info = 100, signature = 100 },
+        window = {
+          info = { height = 25, width = 80, border = 'single' },
+          signature = { height = 25, width = 80, border = 'single' },
+        },
+      })
+    end,
+  },
 
   -- Autocompletion and signature help
   {
@@ -417,10 +492,10 @@ require('lazy').setup({
       local hipatterns = require('mini.hipatterns')
       hipatterns.setup({
         highlighters = {
-          -- fixme = { pattern = '%f[%w]()FIXME()%f[%W]', group = 'MiniHipatternsFixme' },
-          -- hack  = { pattern = '%f[%w]()HACK()%f[%W]',  group = 'MiniHipatternsHack'  },
-          -- todo  = { pattern = '%f[%w]()TODO()%f[%W]',  group = 'MiniHipatternsTodo'  },
-          -- note  = { pattern = '%f[%w]()NOTE()%f[%W]',  group = 'MiniHipatternsNote'  },
+          fixme = { pattern = '%f[%w]()FIXME()%f[%W]', group = 'MiniHipatternsFixme' },
+          hack  = { pattern = '%f[%w]()HACK()%f[%W]',  group = 'MiniHipatternsHack'  },
+          todo  = { pattern = '%f[%w]()TODO()%f[%W]',  group = 'MiniHipatternsTodo'  },
+          note  = { pattern = '%f[%w]()NOTE()%f[%W]',  group = 'MiniHipatternsNote'  },
           hex_color = hipatterns.gen_highlighter.hex_color(),
         },
       })
@@ -467,6 +542,7 @@ require('lazy').setup({
             local diagnostics= diagnostic_icon()
             local filename = statusline.section_filename({ trunc_width = 140 })
             local fileinfo = statusline.section_fileinfo({ trunc_width = 120 })
+            local location = statusline.section_location({ trunc_width = 75 })
             local search = statusline.section_searchcount({ trunc_width = 75 })
             return statusline.combine_groups({
               {hl = mode_hl, strings = {mode}},
@@ -475,7 +551,7 @@ require('lazy').setup({
               {hl = 'MiniStatuslineFilename', strings = {filename}},
               '%=', -- End left alignment
               {hl = 'MiniStatuslineFileinfo', strings = {fileinfo}},
-              {hl = mode_hl, strings = {search}},
+              {hl = mode_hl, strings = {search, location}},
             })
           end,
         },
@@ -485,11 +561,5 @@ require('lazy').setup({
 
   -- Minimal and fast tabline showing listed buffers
   { 'echasnovski/mini.tabline', opts = {}, },
-
-  -- NOTE: Consider the following packages
-  -- mini-base16
-  -- mini-colors
-  -- mini-deps
-  -- mini-hues
 
 }, {})
